@@ -1,6 +1,5 @@
 package me.fiveave.mscooking;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -14,7 +13,7 @@ class hotpot {
 
     private ItemStack[] foodstore;
     private ArmorStand[] amsstore;
-    private BlockDisplay bldstore;
+    private BlockDisplay[] bldstore;
     private Inventory guiinv;
     private Location loc;
     private double[] energygain;
@@ -31,8 +30,8 @@ class hotpot {
         Arrays.fill(airstack, air);
         this.setFoodstore(airstack);
         this.setEnergygain(new double[12]);
-        this.setGuiinv(Bukkit.createInventory(null, 27));
         this.setAmsstore(new ArmorStand[12]);
+        this.setBldstore(new BlockDisplay[16]);
     }
 
     public ItemStack[] getFoodstore() {
@@ -91,11 +90,11 @@ class hotpot {
         this.loc = loc;
     }
 
-    public BlockDisplay getBldstore() {
+    public BlockDisplay[] getBldstore() {
         return bldstore;
     }
 
-    public void setBldstore(BlockDisplay bldstore) {
+    public void setBldstore(BlockDisplay[] bldstore) {
         this.bldstore = bldstore;
     }
 }

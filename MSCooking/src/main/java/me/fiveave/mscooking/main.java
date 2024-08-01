@@ -37,9 +37,10 @@ public final class main extends JavaPlugin implements Listener {
         }
         // Remove block display
         for (Location loc : hotpotlist.keySet()) {
-            BlockDisplay bld = hotpotlist.get(loc).getBldstore();
-            if (bld != null) {
-                bld.remove();
+            for (BlockDisplay bld :hotpotlist.get(loc).getBldstore()) {
+                if (bld != null) {
+                    bld.remove();
+                }
             }
         }
         // Pop out all items existing in hotpot

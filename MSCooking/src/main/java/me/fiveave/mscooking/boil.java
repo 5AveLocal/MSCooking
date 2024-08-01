@@ -79,12 +79,14 @@ class boil {
             double[] energygain = pot.getEnergygain();
             for (int i = 0; i < energygain.length; i++) {
                 energygain[i] += pot.getEpppt() * pot.getPower();
+                int cookedPercent = getFloorCookedPercent(pot, i);
                 // If cooked
-                if (getFloorCookedPercent(pot, i) > 75) {
+                if (cookedPercent > 75) {
                     // Get raw item
                     ItemStack[] foodstore = pot.getFoodstore();
                     ItemStack rawfood = foodstore[i];
-                    Material newfoodmaterial = getMaterial(getCookedFoodName(rawfood));
+                    // If super-overcooked then delete item (set as air), else just make it cooked
+                    Material newfoodmaterial = cookedPercent > 1000 ? Material.AIR : getMaterial(getCookedFoodName(rawfood));
                     // Create cooked item
                     if (newfoodmaterial != null) {
                         foodstore[i] = new ItemStack(newfoodmaterial, rawfood.getAmount());

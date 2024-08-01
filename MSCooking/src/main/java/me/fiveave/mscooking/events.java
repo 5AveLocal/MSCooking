@@ -13,6 +13,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -22,6 +23,9 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.EulerAngle;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.Objects;
 
@@ -84,7 +88,12 @@ class events implements Listener {
     static void openGui(Player p, Location loc) {
         hotpot pot = hotpotlist.get(loc);
         setCurp(pot);
-        Inventory guiinv = Bukkit.createInventory(null, 27, String.format("MSCooking (%d %d %d)", loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+        Inventory guiinv;
+        if (pot.getGuiinv() == null) {
+            guiinv = Bukkit.createInventory(null, 27, String.format("MSCooking (%d %d %d)", loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+        } else {
+            guiinv = pot.getGuiinv();
+        }
         setPanels(pot, guiinv);
         setFoods(pot, guiinv);
         setPowerControls(guiinv);
@@ -117,46 +126,56 @@ class events implements Listener {
         if (amsstore[conrawval] != null) {
             amsstore[conrawval].remove();
         }
-        double dx = 0.75 - conrawval % 3 * 0.25;
-        double dz = 0.25 - (int) (conrawval / 3.0) * 0.15;
-        ArmorStand ams = world.spawn(new Location(world, pot.getLoc().getX() + dx, pot.getLoc().getY() + 0.025, pot.getLoc().getZ() + dz), ArmorStand.class);
-        ams.setSmall(true);
-        ams.setVisible(false);
-        ams.setGravity(false);
-        ams.setRotation(0, 1);
-        ams.setInvulnerable(true);
-        ams.setHeadPose(new EulerAngle(Math.PI / 2, 0, 0));
-        EntityEquipment ete = ams.getEquipment();
-        assert ete != null;
-        ete.setHelmet(selitem);
-        amsstore[conrawval] = ams;
+        if (!selitem.getType().equals(Material.AIR)) {
+            double dx = 0.75 - conrawval % 3 * 0.25;
+            double dz = 0.25 - (int) (conrawval / 3.0) * 0.15;
+            // Spawn armor stand
+            ArmorStand ams = world.spawn(new Location(world, pot.getLoc().getX() + dx, pot.getLoc().getY() + 0.025, pot.getLoc().getZ() + dz), ArmorStand.class);
+            ams.setSmall(true);
+            ams.setVisible(false);
+            ams.setGravity(false);
+            ams.setRotation(0, 1);
+            ams.setInvulnerable(true);
+            ams.setBasePlate(false);
+            ams.setHeadPose(new EulerAngle(Math.PI / 2, 0, 0));
+            EntityEquipment ete = ams.getEquipment();
+            assert ete != null;
+            ete.setHelmet(selitem);
+            // Store armor stand into hotpot
+            amsstore[conrawval] = ams;
+        }
         pot.setAmsstore(amsstore);
     }
 
-    static void setBlockDisplay(hotpot pot, World world) {
-        BlockDisplay bldstore = pot.getBldstore();
+    static void setBlockDisplay(hotpot pot, int index, World world, Material material) {
+        BlockDisplay[] bldstore = pot.getBldstore();
         // Kill block display if already exists to avoid overlapping
-        if (bldstore != null) {
-            bldstore.remove();
+        if (bldstore[index] != null) {
+            bldstore[index].remove();
         }
-        BlockDisplay bld = world.spawn(new Location(world, pot.getLoc().getX(), pot.getLoc().getY(), pot.getLoc().getZ()), BlockDisplay.class);
-        bld.setGravity(false);
-        bld.setDisplayHeight(0.5f);
-        bld.setDisplayWidth(0.5f);
-        BlockData bd = Bukkit.createBlockData(WHITE_STAINED_GLASS);
-        bld.setBlock(bd);
-        pot.setBldstore(bld);
+        if (!material.equals(Material.AIR)) {
+            // Spawn block display
+            BlockDisplay bld = world.spawn(new Location(world, pot.getLoc().getX() + 0.05, pot.getLoc().getY() + 0.84 - index * 0.001, pot.getLoc().getZ() + 0.05), BlockDisplay.class);
+            bld.setGravity(false);
+            // Adjust size
+            bld.setTransformation(new Transformation(new Vector3f(0), new AxisAngle4f(0, 0, 0, 0), new Vector3f(0.9f, 0.1f, 0.9f), new AxisAngle4f(0, 0, 0, 0)));
+            BlockData bd = Bukkit.createBlockData(material);
+            bld.setBlock(bd);
+            // Store block display into hotpot
+            bldstore[index] = bld;
+        }
+        pot.setBldstore(bldstore);
     }
 
     @EventHandler
     void onClickUtensil(PlayerInteractEvent event) {
         Block blk = event.getClickedBlock();
-        if (blk != null) {
+        Player p = event.getPlayer();
+        if (blk != null && !p.isSneaking()) {
             Location loc = blk.getLocation();
             hotpotlist.putIfAbsent(loc, new hotpot());
             hotpot pot = hotpotlist.get(loc);
             pot.setLoc(loc);
-            Player p = event.getPlayer();
             if (blk.getType() == WATER_CAULDRON) {
                 Block indblk = blk.getWorld().getBlockAt(blk.getX(), blk.getY() - 1, blk.getZ());
                 BlockState indstate = indblk.getState();
@@ -180,6 +199,7 @@ class events implements Listener {
         Player p = (Player) event.getWhoClicked();
         String title = view.getTitle();
         String[] titlesep = title.replace("MSCooking (", "").replace(")", "").split(" ");
+        // Is valid pot
         if (title.contains("MSCooking (")) {
             int ex = Integer.parseInt(titlesep[0]);
             int ey = Integer.parseInt(titlesep[1]);
@@ -208,53 +228,61 @@ class events implements Listener {
             int conrawval = findIndexFromInv(orirawval);
             // If true means slot is at upper inventory (chest), else is at lower (player)
             if (orival == orirawval) {
-                // Take food from hotpot or receive food from player (need to refine this part? kinda buggy but still works)
-                if (conrawval >= 0) {
-                    ItemStack[] inv = pot.getFoodstore();
-                    // Dispose overcooked food
-                    if (getFloorCookedPercent(pot, conrawval) > 125) {
-                        event.setCurrentItem(new ItemStack(Material.AIR));
-                        p.sendMessage(mscktitle + ChatColor.RED + "Your food was overcooked so you did not receive it.");
-                    }
-                    // Valid item check
-                    // If food not match or not single then cancel
-                    int count = 0;
-                    ItemStack cursorfood = event.getCursor();
-                    ItemStack currentfood = event.getCurrentItem();
-                    for (Material food : rawfoodlist) {
-                        if (cursorfood != null && (cursorfood.getType().equals(food) || cursorfood.getType().equals(AIR))) {
-                            count++;
+                // Anti invalid click types
+                if (event.getClick().equals(ClickType.LEFT)) {
+                    // Take food from hotpot or receive food from player (need to refine this part? kinda buggy but still works)
+                    if (conrawval >= 0) {
+                        ItemStack[] inv = pot.getFoodstore();
+                        // Dispose overcooked food
+                        if (getFloorCookedPercent(pot, conrawval) > 125) {
+                            event.setCurrentItem(new ItemStack(Material.AIR));
+                            p.sendMessage(mscktitle + ChatColor.RED + "Your food was disposed due to overcooking.");
                         }
-                    }
-                    if (count == 0 || cursorfood.getAmount() > 1 || (currentfood != null && cursorfood.getType().equals(currentfood.getType()) && currentfood.getAmount() > 0)) {
-                        event.setCancelled(true);
-                        p.sendMessage(mscktitle + ChatColor.RED + "Please insert valid and singular items only.");
-                        return;
+                        // Valid item check
+                        // If food not match or not single then cancel
+                        int count = 0;
+                        ItemStack cursorfood = event.getCursor();
+                        ItemStack currentfood = event.getCurrentItem();
+                        for (Material food : rawfoodlist) {
+                            if (cursorfood != null && (cursorfood.getType().equals(food) || cursorfood.getType().equals(AIR))) {
+                                count++;
+                            }
+                        }
+                        if (count == 0 || cursorfood.getAmount() > 1 || (currentfood != null && cursorfood.getType().equals(currentfood.getType()) && currentfood.getAmount() > 0)) {
+                            event.setCancelled(true);
+                            p.sendMessage(mscktitle + ChatColor.RED + "Please insert valid and singular items only.");
+                            return;
 
-                    }
-                    // Anti null
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        final ItemStack selitem = (event.getCurrentItem() == null) ? new ItemStack(Material.AIR) : event.getCurrentItem();
-                        // Armor stand display item
-                        setArmorStand(pot, conrawval, world, selitem);
-                        // setBlockDisplay(pot, world);
-                        // Store food into pot
-                        inv[conrawval] = selitem;
-                        pot.setFoodstore(inv);
-                        // Uncook item (slot) if taken out
-                        double[] energygainlist = pot.getEnergygain();
-                        energygainlist[conrawval] = 0;
-                        pot.setEnergygain(energygainlist);
-                        // Update GUI
+                        }
+                        // Anti null
                         Bukkit.getScheduler().runTask(plugin, () -> {
-                            setPanels(pot, pot.getGuiinv());
-                            setFoods(pot, pot.getGuiinv());
+                            final ItemStack selitem = (event.getCurrentItem() == null) ? new ItemStack(Material.AIR) : event.getCurrentItem();
+                            // Armor stand display item
+                            setArmorStand(pot, conrawval, world, selitem);
+                            // Block display
+                            setBlockDisplay(pot, 0, world, WHITE_STAINED_GLASS);
+                            setBlockDisplay(pot, 1, world, ORANGE_STAINED_GLASS);
+                            setBlockDisplay(pot, 2, world, YELLOW_STAINED_GLASS);
+                            // Store food into pot
+                            inv[conrawval] = selitem;
+                            pot.setFoodstore(inv);
+                            // Uncook item (slot) if taken out
+                            double[] energygainlist = pot.getEnergygain();
+                            energygainlist[conrawval] = 0;
+                            pot.setEnergygain(energygainlist);
+                            // Update GUI
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                setPanels(pot, pot.getGuiinv());
+                                setFoods(pot, pot.getGuiinv());
+                            });
                         });
-                    });
-                }
-                // If not food slots in GUI
-                if (conrawval == -1) {
-                    openGui(p, loc);
+                    }
+                    // If not food slots in GUI
+                    if (conrawval == -1) {
+                        openGui(p, loc);
+                        event.setCancelled(true);
+                    }
+                } else {
                     event.setCancelled(true);
                 }
             }
