@@ -155,16 +155,53 @@ class events implements Listener {
         }
         if (!material.equals(Material.AIR)) {
             // Spawn block display
-            BlockDisplay bld = world.spawn(new Location(world, pot.getLoc().getX() + 0.05, pot.getLoc().getY() + 0.84 - index * 0.001, pot.getLoc().getZ() + 0.05), BlockDisplay.class);
+            BlockDisplay bld = world.spawn(new Location(world, pot.getLoc().getX() + 0.05, pot.getLoc().getY() + 0.94 - index * 0.0001, pot.getLoc().getZ() + 0.05), BlockDisplay.class);
             bld.setGravity(false);
             // Adjust size
-            bld.setTransformation(new Transformation(new Vector3f(0), new AxisAngle4f(0, 0, 0, 0), new Vector3f(0.9f, 0.1f, 0.9f), new AxisAngle4f(0, 0, 0, 0)));
+            bld.setTransformation(new Transformation(new Vector3f(0), new AxisAngle4f(0, 0, 0, 0), new Vector3f(0.9f, 0.0001f, 0.9f), new AxisAngle4f(0, 0, 0, 0)));
             BlockData bd = Bukkit.createBlockData(material);
             bld.setBlock(bd);
             // Store block display into hotpot
             bldstore[index] = bld;
         }
         pot.setBldstore(bldstore);
+    }
+
+    static void setBlockDisplayList(hotpot pot, World world, Material... materials) {
+        // Clear old soup
+        for (int i = 0; i < 16; i++) {
+            setBlockDisplay(pot, i, world, AIR);
+        }
+        // Set new soup according to list
+        int index = 0;
+        for (Material material : materials) {
+            setBlockDisplay(pot, index, world, material);
+            index++;
+        }
+    }
+
+    private static void setSoupBase(SignSide indsignside, hotpot pot, World world) {
+        // Block display
+        switch (indsignside.getLine(2)) {
+            case "clear":
+                setBlockDisplayList(pot, world, ORANGE_STAINED_GLASS, YELLOW_STAINED_GLASS);
+                break;
+            case "tomato":
+                setBlockDisplayList(pot, world, RED_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS);
+                break;
+            case "mala":
+                setBlockDisplayList(pot, world, RED_STAINED_GLASS, RED_STAINED_GLASS, RED_STAINED_GLASS, RED_STAINED_GLASS, ORANGE_STAINED_GLASS, BLACK_STAINED_GLASS, BLACK_STAINED_GLASS);
+                break;
+            case "mushroom":
+                setBlockDisplayList(pot, world, WHITE_STAINED_GLASS, ORANGE_STAINED_GLASS, YELLOW_STAINED_GLASS, YELLOW_STAINED_GLASS);
+                break;
+            case "test":
+                setBlockDisplayList(pot, world, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS, ORANGE_STAINED_GLASS);
+                break;
+            default:
+                setBlockDisplayList(pot, world, AIR);
+                break;
+        }
     }
 
     @EventHandler
@@ -177,7 +214,8 @@ class events implements Listener {
             hotpot pot = hotpotlist.get(loc);
             pot.setLoc(loc);
             if (blk.getType() == WATER_CAULDRON) {
-                Block indblk = blk.getWorld().getBlockAt(blk.getX(), blk.getY() - 1, blk.getZ());
+                World world = blk.getWorld();
+                Block indblk = world.getBlockAt(blk.getX(), blk.getY() - 1, blk.getZ());
                 BlockState indstate = indblk.getState();
                 if (indstate instanceof Sign) {
                     Sign indsign = (Sign) indstate;
@@ -185,6 +223,8 @@ class events implements Listener {
                     if (indsignside.getLine(0).equals("[MSCooking]")) {
                         if (indsignside.getLine(1).equals("hotpot")) {
                             openGui(p, blk.getLocation());
+                            // Soup base (block display)
+                            setSoupBase(indsignside, pot, world);
                             event.setCancelled(true);
                         }
                     }
@@ -259,10 +299,6 @@ class events implements Listener {
                             final ItemStack selitem = (event.getCurrentItem() == null) ? new ItemStack(Material.AIR) : event.getCurrentItem();
                             // Armor stand display item
                             setArmorStand(pot, conrawval, world, selitem);
-                            // Block display
-                            setBlockDisplay(pot, 0, world, WHITE_STAINED_GLASS);
-                            setBlockDisplay(pot, 1, world, ORANGE_STAINED_GLASS);
-                            setBlockDisplay(pot, 2, world, YELLOW_STAINED_GLASS);
                             // Store food into pot
                             inv[conrawval] = selitem;
                             pot.setFoodstore(inv);
