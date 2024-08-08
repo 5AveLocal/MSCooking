@@ -29,12 +29,12 @@ import org.joml.Vector3f;
 
 import java.util.Objects;
 
+import static me.fiveave.mscooking.boil.*;
 import static me.fiveave.mscooking.main.*;
 import static org.bukkit.Material.*;
 
 class events implements Listener {
     static final int[] foodslots = new int[]{2, 4, 6, 8, 11, 13, 15, 17, 20, 22, 24, 26};
-    static final Material[] rawfoodlist = new Material[]{POTATO, BEEF, SALMON, COD, RABBIT, CHICKEN, MUTTON, PORKCHOP};
     static final ItemStack incp = getItem(Material.RED_WOOL, ChatColor.RED + "Increase Power", 1);
     static final ItemStack decp = getItem(Material.GREEN_WOOL, ChatColor.GREEN + "Decrease Power", 1);
     static ItemStack curp;
@@ -283,8 +283,13 @@ class events implements Listener {
                         int count = 0;
                         ItemStack cursorfood = event.getCursor();
                         ItemStack currentfood = event.getCurrentItem();
-                        for (Material food : rawfoodlist) {
-                            if (cursorfood != null && (cursorfood.getType().equals(food) || cursorfood.getType().equals(AIR))) {
+                        for (String key : itemdata.dataconfig.getKeys(false)) {
+                            // Create item for testing
+                            ItemMeta newitemmeta = getItemDataMeta(key);
+                            ItemStack food = getItemDataItem(getItemDataMaterial(key));
+                            food.setItemMeta(newitemmeta);
+                            ItemStack cookedfood = getCookedFood(food);
+                            if (cookedfood != null && cursorfood != null && (cursorfood.equals(food) || cursorfood.getType().equals(AIR))) {
                                 count++;
                             }
                         }

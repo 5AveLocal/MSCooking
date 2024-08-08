@@ -1,0 +1,105 @@
+beef:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: BEEF
+  total-energy-req: '2.67'
+  cooked-to: cooked_beef
+cooked_beef:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: COOKED_BEEF
+  total-energy-req: '2.67'
+porkchop:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: PORKCHOP
+  total-energy-req: '2.67'
+  cooked-to: cooked_porkchop
+cooked_porkchop:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: COOKED_PORKCHOP
+  total-energy-req: '2.67'
+mutton:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: MUTTON
+  total-energy-req: '3.0'
+  cooked-to: cooked_mutton
+cooked_mutton:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: COOKED_MUTTON
+  total-energy-req: '3.0'
+chicken:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: CHICKEN
+  total-energy-req: '3.0'
+  cooked-to: cooked_chicken
+cooked_chicken:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: COOKED_CHICKEN
+  total-energy-req: '3.0'
+rabbit:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: RABBIT
+  total-energy-req: '1.67'
+  cooked-to: cooked_rabbit
+cooked_rabbit:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: COOKED_RABBIT
+  total-energy-req: '1.67'
+cod:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: COD
+  total-energy-req: '1.67'
+  cooked-to: cooked_cod
+cooked_cod:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: COOKED_COD
+  total-energy-req: '1.67'
+salmon:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: SALMON
+  total-energy-req: '3.0'
+  cooked-to: cooked_salmon
+cooked_salmon:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: COOKED_SALMON
+  total-energy-req: '3.0'
+potato:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: POTATO
+  total-energy-req: '5.0'
+  cooked-to: baked_potato
+baked_potato:
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+  material: BAKED_POTATO
+  total-energy-req: '5.0'
+  

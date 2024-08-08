@@ -16,14 +16,18 @@ import java.util.Objects;
 
 public final class main extends JavaPlugin implements Listener {
     public static main plugin;
-
-    static String mscktitle = ChatColor.WHITE + "[" + ChatColor.AQUA + "MS" + ChatColor.YELLOW + "Cooking" + ChatColor.WHITE + "] ";
+    public static String mscktitle = ChatColor.WHITE + "[" + ChatColor.AQUA + "MS" + ChatColor.YELLOW + "Cooking" + ChatColor.WHITE + "] ";
+    static abstractfile itemdata;
     static HashMap<Location, hotpot> hotpotlist = new HashMap<>();
 
     public void onEnable() {
         plugin = this;
         PluginManager pm = this.getServer().getPluginManager();
         pm.registerEvents(new events(), this);
+        itemdata = new abstractfile(this, "itemdata.yml");
+        itemdata.saveDefaultConfig();
+        Objects.requireNonNull(this.getCommand("msck")).setExecutor(new cmds());
+        Objects.requireNonNull(this.getCommand("msck")).setTabCompleter(new cmds());
     }
 
     public void onDisable() {
