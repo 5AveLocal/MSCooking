@@ -1,4 +1,8 @@
 # MSCooking
  Cooking plugin for Mounsand Server
- ##
- Plugin command is /msck, type command for more details
+
+## 🔗 Requirement
+Must be installed in Minecraft 1.20.6 or above.
+
+## ⚙️ Commands
+`/msck` for list of commands.
