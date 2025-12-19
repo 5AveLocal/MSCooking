@@ -15,13 +15,13 @@ import java.util.Set;
 import static me.fiveave.mscooking.main.mscktitle;
 
 
-class abstractfile {
+class absyaml {
     protected final main plugin;
     FileConfiguration dataconfig;
     FileConfiguration oldconfig;
     private File file;
 
-    abstractfile(main plugin, String fileName) {
+    absyaml(main plugin, String fileName) {
         this.plugin = plugin;
         file = new File(plugin.getDataFolder(), fileName);
         dataconfig = YamlConfiguration.loadConfiguration(file);
