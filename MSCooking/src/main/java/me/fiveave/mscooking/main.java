@@ -1,5 +1,6 @@
 package me.fiveave.mscooking;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,10 +14,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.logging.Level;
 
 public final class main extends JavaPlugin implements Listener {
     public static main plugin;
-    public static String mscktitle = ChatColor.WHITE + "[" + ChatColor.AQUA + "MS" + ChatColor.YELLOW + "Cooking" + ChatColor.WHITE + "] ";
+    public static String MSCK_HEAD = ChatColor.WHITE + "[" + ChatColor.AQUA + "MS" + ChatColor.YELLOW + "Cooking" + ChatColor.WHITE + "] ";
     static absyaml itemdata;
     static HashMap<Location, hotpot> hotpotlist = new HashMap<>();
 
@@ -56,5 +58,9 @@ public final class main extends JavaPlugin implements Listener {
                 }
             }
         }
+    }
+
+    static void errorLog(Exception e) {
+        Bukkit.getLogger().log(Level.SEVERE, ChatColor.stripColor(MSCK_HEAD) + "An error occurred!", e);
     }
 }

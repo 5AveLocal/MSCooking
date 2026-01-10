@@ -12,7 +12,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import static me.fiveave.mscooking.main.mscktitle;
+import static me.fiveave.mscooking.main.MSCK_HEAD;
+import static me.fiveave.mscooking.main.errorLog;
 
 
 class absyaml {
@@ -61,9 +62,9 @@ class absyaml {
                 try {
                     dataconfig.save(file);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    errorLog(e);
                 }
-                System.out.println(mscktitle + ChatColor.YELLOW + file.getName() + " has been updated due to missing content");
+                System.out.println(MSCK_HEAD + ChatColor.YELLOW + file.getName() + " has been updated due to missing content");
             }
         }
     }
@@ -75,7 +76,7 @@ class absyaml {
         try {
             dataconfig.save(file);
         } catch (IOException e) {
-            e.printStackTrace();
+            errorLog(e);
         }
     }
 

@@ -16,7 +16,7 @@ import java.util.List;
 
 import static me.fiveave.mscooking.boil.*;
 import static me.fiveave.mscooking.main.itemdata;
-import static me.fiveave.mscooking.main.mscktitle;
+import static me.fiveave.mscooking.main.MSCK_HEAD;
 
 @SuppressWarnings("NullableProblems")
 public class cmds implements CommandExecutor, TabCompleter {
@@ -27,7 +27,7 @@ public class cmds implements CommandExecutor, TabCompleter {
             Player p = (Player) sender;
             if (p.isOp()) {
                 if (args.length == 0) {
-                    p.sendMessage(mscktitle + ChatColor.YELLOW + "/msck additem/delitem/getitem");
+                    p.sendMessage(MSCK_HEAD + ChatColor.YELLOW + "/msck additem/delitem/getitem");
                     return true;
                 }
                 switch (args[0].toLowerCase()) {
@@ -45,13 +45,13 @@ public class cmds implements CommandExecutor, TabCompleter {
                             // Save config
                             itemdata.save();
                             // Message to player
-                            String msg = mscktitle + ChatColor.YELLOW + "Item " + ChatColor.AQUA + args[1] + ChatColor.YELLOW + " has been added with required energy of "+ ChatColor.AQUA + args[2] + ChatColor.YELLOW;
+                            String msg = MSCK_HEAD + ChatColor.YELLOW + "Item " + ChatColor.AQUA + args[1] + ChatColor.YELLOW + " has been added with required energy of "+ ChatColor.AQUA + args[2] + ChatColor.YELLOW;
                             if (args.length == 4) {
                                 msg += " and is " + ChatColor.AQUA + args[3] + ChatColor.YELLOW + " when cooked";
                             }
                             p.sendMessage(msg);
                         } else {
-                            p.sendMessage(mscktitle + ChatColor.YELLOW + "/msck additem <item_name> <total_energy_req> [cooked_to]");
+                            p.sendMessage(MSCK_HEAD + ChatColor.YELLOW + "/msck additem <item_name> <total_energy_req> [cooked_to]");
                         }
                         break;
                     case "delitem":
@@ -60,9 +60,9 @@ public class cmds implements CommandExecutor, TabCompleter {
                             itemdata.dataconfig.set(args[1], null);
                             itemdata.save();
                             // Message to player
-                            p.sendMessage(mscktitle + ChatColor.YELLOW + "Item " + ChatColor.AQUA + args[1] + ChatColor.YELLOW + " has been deleted");
+                            p.sendMessage(MSCK_HEAD + ChatColor.YELLOW + "Item " + ChatColor.AQUA + args[1] + ChatColor.YELLOW + " has been deleted");
                         } else {
-                            p.sendMessage(mscktitle + ChatColor.YELLOW + "/msck delitem <item_name>");
+                            p.sendMessage(MSCK_HEAD + ChatColor.YELLOW + "/msck delitem <item_name>");
                         }
                         break;
                     case "getitem":
@@ -79,19 +79,19 @@ public class cmds implements CommandExecutor, TabCompleter {
                                     if (inv.getItem(i) == null) {
                                         p.getInventory().setItem(i, newitem);
                                         // Message to player
-                                        p.sendMessage(mscktitle + ChatColor.YELLOW + "Item " + ChatColor.AQUA + args[1] + ChatColor.YELLOW + " has been added to your inventory.");
+                                        p.sendMessage(MSCK_HEAD + ChatColor.YELLOW + "Item " + ChatColor.AQUA + args[1] + ChatColor.YELLOW + " has been added to your inventory.");
                                         successcount++;
                                         break;
                                     }
                                 }
                                 if (successcount == 0) {
-                                    p.sendMessage(mscktitle + ChatColor.RED + "Your inventory is full!");
+                                    p.sendMessage(MSCK_HEAD + ChatColor.RED + "Your inventory is full!");
                                 }
                             } else {
-                                p.sendMessage(mscktitle + ChatColor.RED + "Item does not exist!");
+                                p.sendMessage(MSCK_HEAD + ChatColor.RED + "Item does not exist!");
                             }
                         } else {
-                            p.sendMessage(mscktitle + ChatColor.YELLOW + "/msck getitem <item_name>");
+                            p.sendMessage(MSCK_HEAD + ChatColor.YELLOW + "/msck getitem <item_name>");
                         }
                         break;
                 }

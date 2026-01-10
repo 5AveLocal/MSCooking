@@ -276,7 +276,7 @@ class events implements Listener {
                         // Dispose overcooked food
                         if (getFloorCookedPercent(pot, conrawval) > 125) {
                             event.setCurrentItem(new ItemStack(Material.AIR));
-                            p.sendMessage(mscktitle + ChatColor.RED + "Your food was disposed due to overcooking.");
+                            p.sendMessage(MSCK_HEAD + ChatColor.RED + "Your food was disposed due to overcooking.");
                         }
                         // Valid item check
                         // If food not match or not single then cancel
@@ -295,7 +295,7 @@ class events implements Listener {
                         }
                         if (count == 0 || cursorfood.getAmount() > 1 || (currentfood != null && cursorfood.getType().equals(currentfood.getType()) && currentfood.getAmount() > 0)) {
                             event.setCancelled(true);
-                            p.sendMessage(mscktitle + ChatColor.RED + "Please insert valid and singular items only.");
+                            p.sendMessage(MSCK_HEAD + ChatColor.RED + "Please insert valid and singular items only.");
                             return;
 
                         }
