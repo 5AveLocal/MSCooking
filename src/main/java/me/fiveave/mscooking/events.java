@@ -39,7 +39,7 @@ class events implements Listener {
     static final ItemStack decp = getItem(Material.GREEN_WOOL, ChatColor.GREEN + "Decrease Power", 1);
     static ItemStack curp;
 
-    private static void setCurp(hotpot pot) {
+    private static void setCurrentPower(hotpot pot) {
         // Color change for no power and up
         curp = pot.getPower() > 0 ? getItem(Material.WHITE_WOOL, ChatColor.YELLOW + "Current Power: " + ChatColor.WHITE + pot.getPower(), pot.getPower()) : getItem(Material.LIGHT_GRAY_WOOL, ChatColor.YELLOW + "Current Power: " + ChatColor.GRAY + "OFF", 1);
     }
@@ -87,10 +87,10 @@ class events implements Listener {
 
     static void openGui(Player p, Location loc) {
         hotpot pot = hotpotlist.get(loc);
-        setCurp(pot);
+        setCurrentPower(pot);
         Inventory guiinv;
         if (pot.getGuiinv() == null) {
-            guiinv = Bukkit.createInventory(null, 27, String.format("MSCooking (%d %d %d)", loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+            guiinv = Bukkit.createInventory(null, 27, String.format("MSCooking                              (%d %d %d)", loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
         } else {
             guiinv = pot.getGuiinv();
         }
@@ -217,8 +217,7 @@ class events implements Listener {
                 World world = blk.getWorld();
                 Block indblk = world.getBlockAt(blk.getX(), blk.getY() - 1, blk.getZ());
                 BlockState indstate = indblk.getState();
-                if (indstate instanceof Sign) {
-                    Sign indsign = (Sign) indstate;
+                if (indstate instanceof Sign indsign) {
                     SignSide indsignside = indsign.getSide(Side.FRONT);
                     if (indsignside.getLine(0).equals("[MSCooking]")) {
                         if (indsignside.getLine(1).equals("hotpot")) {
@@ -238,9 +237,9 @@ class events implements Listener {
         InventoryView view = event.getView();
         Player p = (Player) event.getWhoClicked();
         String title = view.getTitle();
-        String[] titlesep = title.replace("MSCooking (", "").replace(")", "").split(" ");
+        String[] titlesep = title.replace("MSCooking                              (", "").replace(")", "").split(" ");
         // Is valid pot
-        if (title.contains("MSCooking (")) {
+        if (title.contains("MSCooking                              (")) {
             int ex = Integer.parseInt(titlesep[0]);
             int ey = Integer.parseInt(titlesep[1]);
             int ez = Integer.parseInt(titlesep[2]);
@@ -256,7 +255,7 @@ class events implements Listener {
             if (Objects.equals(event.getCurrentItem(), decp) && pot.getPower() > 0) {
                 pot.setPower(oldpower - 1);
             }
-            setCurp(pot);
+            setCurrentPower(pot);
             // Food boiling loop if power on
             if (oldpower == 0 && pot.getPower() > 0) {
                 boil.boilLoop(pot);
@@ -269,7 +268,8 @@ class events implements Listener {
             // If true means slot is at upper inventory (chest), else is at lower (player)
             if (orival == orirawval) {
                 // Anti invalid click types
-                if (event.getClick().equals(ClickType.LEFT)) {
+                p.sendMessage(event.getClick() + " " + event.getCursor() + " " + event.getCurrentItem());
+                if (event.getClick().equals(ClickType.LEFT) || event.getClick().equals(ClickType.RIGHT) || event.getClick().equals(ClickType.MIDDLE)) {
                     // Take food from hotpot or receive food from player (need to refine this part? kinda buggy but still works)
                     if (conrawval >= 0) {
                         ItemStack[] inv = pot.getFoodstore();
@@ -280,7 +280,7 @@ class events implements Listener {
                         }
                         // Valid item check
                         // If food not match or not single then cancel
-                        int count = 0;
+                        boolean validitem = false;
                         ItemStack cursorfood = event.getCursor();
                         ItemStack currentfood = event.getCurrentItem();
                         for (String key : itemdata.dataconfig.getKeys(false)) {
@@ -290,14 +290,29 @@ class events implements Listener {
                             food.setItemMeta(newitemmeta);
                             ItemStack cookedfood = getCookedFood(food);
                             if (cookedfood != null && cursorfood != null && (cursorfood.equals(food) || cursorfood.getType().equals(AIR))) {
-                                count++;
+                                validitem = true;
+                                break;
                             }
                         }
-                        if (count == 0 || cursorfood.getAmount() > 1 || (currentfood != null && cursorfood.getType().equals(currentfood.getType()) && currentfood.getAmount() > 0)) {
-                            event.setCancelled(true);
-                            p.sendMessage(MSCK_HEAD + ChatColor.RED + "Please insert valid and singular items only.");
-                            return;
-
+                        // Insert item criteria
+                        switch (event.getClick()) {
+                            case LEFT, RIGHT:
+                                if (!validitem) {
+                                    event.setCancelled(true);
+                                    p.sendMessage(MSCK_HEAD + ChatColor.RED + "Please insert valid items only.");
+                                    return;
+                                }
+                                if (currentfood != null && cursorfood.getType().equals(currentfood.getType()) && currentfood.getAmount() > 0) {
+                                    event.setCancelled(true);
+                                    p.sendMessage(MSCK_HEAD + ChatColor.RED + "Slot is full.");
+                                    return;
+                                }
+                                if (cursorfood.getAmount() > 1) {
+                                    //
+                                }
+                                break;
+                            default:
+                                break;
                         }
                         // Anti null
                         Bukkit.getScheduler().runTask(plugin, () -> {
@@ -334,8 +349,7 @@ class events implements Listener {
     void onClickAms(PlayerInteractAtEntityEvent event) {
         Entity e = event.getRightClicked();
         // Cancel hotpot armor stand interaction (click)
-        if (e instanceof ArmorStand) {
-            ArmorStand ams1 = (ArmorStand) e;
+        if (e instanceof ArmorStand ams1) {
             for (Location loc : hotpotlist.keySet()) {
                 for (ArmorStand ams2 : hotpotlist.get(loc).getAmsstore()) {
                     if (ams1.equals(ams2)) {
