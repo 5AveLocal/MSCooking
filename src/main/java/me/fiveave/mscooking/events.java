@@ -27,6 +27,8 @@ import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 
 import static me.fiveave.mscooking.boil.*;
@@ -35,13 +37,15 @@ import static org.bukkit.Material.*;
 
 class events implements Listener {
     static final int[] foodslots = new int[]{2, 4, 6, 8, 11, 13, 15, 17, 20, 22, 24, 26};
-    static final ItemStack incp = getItem(Material.RED_WOOL, ChatColor.RED + "Increase Power", 1);
-    static final ItemStack decp = getItem(Material.GREEN_WOOL, ChatColor.GREEN + "Decrease Power", 1);
-    static ItemStack curp;
+    static final ItemStack increasepower = getItem(Material.RED_WOOL, ChatColor.RED + "Increase Power", 1);
+    static final ItemStack decreasepower = getItem(Material.GREEN_WOOL, ChatColor.GREEN + "Decrease Power", 1);
+    static ItemStack currentpower;
 
     private static void setCurrentPower(hotpot pot) {
         // Color change for no power and up
-        curp = pot.getPower() > 0 ? getItem(Material.WHITE_WOOL, ChatColor.YELLOW + "Current Power: " + ChatColor.WHITE + pot.getPower(), pot.getPower()) : getItem(Material.LIGHT_GRAY_WOOL, ChatColor.YELLOW + "Current Power: " + ChatColor.GRAY + "OFF", 1);
+        currentpower = pot.getPower() > 0 ?
+                getItem(Material.WHITE_WOOL, ChatColor.YELLOW + "Current Power: " + ChatColor.WHITE + pot.getPower(), pot.getPower()) :
+                getItem(Material.LIGHT_GRAY_WOOL, ChatColor.YELLOW + "Current Power: " + ChatColor.GRAY + "OFF", 1);
     }
 
     static void setPanels(hotpot pot, Inventory guiinv) {
@@ -90,7 +94,7 @@ class events implements Listener {
         setCurrentPower(pot);
         Inventory guiinv;
         if (pot.getGuiinv() == null) {
-            guiinv = Bukkit.createInventory(null, 27, String.format("MSCooking                              (%d %d %d)", loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+            guiinv = Bukkit.createInventory(null, 27, String.format("MSCooking Hotpot                     (%d %d %d)", loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
         } else {
             guiinv = pot.getGuiinv();
         }
@@ -102,9 +106,9 @@ class events implements Listener {
     }
 
     private static void setPowerControls(Inventory guiinv) {
-        createItem(guiinv, 0, incp);
-        createItem(guiinv, 9, curp);
-        createItem(guiinv, 18, decp);
+        createItem(guiinv, 0, increasepower);
+        createItem(guiinv, 9, currentpower);
+        createItem(guiinv, 18, decreasepower);
     }
 
     static void createItem(Inventory inv, int pos, ItemStack item) {
@@ -237,9 +241,9 @@ class events implements Listener {
         InventoryView view = event.getView();
         Player p = (Player) event.getWhoClicked();
         String title = view.getTitle();
-        String[] titlesep = title.replace("MSCooking                              (", "").replace(")", "").split(" ");
+        String[] titlesep = title.replace("MSCooking Hotpot                     (", "").replace(")", "").split(" ");
         // Is valid pot
-        if (title.contains("MSCooking                              (")) {
+        if (title.contains("MSCooking Hotpot                     (")) {
             int ex = Integer.parseInt(titlesep[0]);
             int ey = Integer.parseInt(titlesep[1]);
             int ez = Integer.parseInt(titlesep[2]);
@@ -249,10 +253,10 @@ class events implements Listener {
             hotpot pot = hotpotlist.get(loc);
             int oldpower = pot.getPower();
             // Power controls
-            if (Objects.equals(event.getCurrentItem(), incp) && pot.getPower() < 5) {
+            if (Objects.equals(event.getCurrentItem(), increasepower) && pot.getPower() < 5) {
                 pot.setPower(oldpower + 1);
             }
-            if (Objects.equals(event.getCurrentItem(), decp) && pot.getPower() > 0) {
+            if (Objects.equals(event.getCurrentItem(), decreasepower) && pot.getPower() > 0) {
                 pot.setPower(oldpower - 1);
             }
             setCurrentPower(pot);
@@ -267,10 +271,11 @@ class events implements Listener {
             int conrawval = findIndexFromInv(orirawval);
             // If true means slot is at upper inventory (chest), else is at lower (player)
             if (orival == orirawval) {
-                // Anti invalid click types
-                p.sendMessage(event.getClick() + " " + event.getCursor() + " " + event.getCurrentItem());
-                if (event.getClick().equals(ClickType.LEFT) || event.getClick().equals(ClickType.RIGHT) || event.getClick().equals(ClickType.MIDDLE)) {
-                    // Take food from hotpot or receive food from player (need to refine this part? kinda buggy but still works)
+                // Upper inventory (chest)
+                HashSet<ClickType> validclicktypes = new HashSet<>(Arrays.asList(ClickType.LEFT, ClickType.RIGHT, ClickType.SHIFT_LEFT, ClickType.SHIFT_RIGHT, ClickType.NUMBER_KEY));
+                // Valid click types only
+                if (validclicktypes.contains(event.getClick())) {
+                    // Take food from hotpot or receive food from player
                     if (conrawval >= 0) {
                         ItemStack[] inv = pot.getFoodstore();
                         // Dispose overcooked food
@@ -289,30 +294,31 @@ class events implements Listener {
                             ItemStack food = getItemDataItem(getItemDataMaterial(key));
                             food.setItemMeta(newitemmeta);
                             ItemStack cookedfood = getCookedFood(food);
-                            if (cookedfood != null && cursorfood != null && (cursorfood.equals(food) || cursorfood.getType().equals(AIR))) {
+                            if (cookedfood != null && !food.equals(cookedfood) && cursorfood != null && (cursorfood.isSimilar(food) || cursorfood.getType().equals(AIR))) {
                                 validitem = true;
                                 break;
                             }
                         }
                         // Insert item criteria
-                        switch (event.getClick()) {
-                            case LEFT, RIGHT:
-                                if (!validitem) {
-                                    event.setCancelled(true);
-                                    p.sendMessage(MSCK_HEAD + ChatColor.RED + "Please insert valid items only.");
-                                    return;
-                                }
-                                if (currentfood != null && cursorfood.getType().equals(currentfood.getType()) && currentfood.getAmount() > 0) {
-                                    event.setCancelled(true);
-                                    p.sendMessage(MSCK_HEAD + ChatColor.RED + "Slot is full.");
-                                    return;
-                                }
-                                if (cursorfood.getAmount() > 1) {
-                                    //
-                                }
-                                break;
-                            default:
-                                break;
+                        if (!validitem) {
+                            event.setCancelled(true);
+                            p.sendMessage(MSCK_HEAD + ChatColor.RED + "Please insert valid items only.");
+                            return;
+                        }
+                        // Occupied slot (not replacing item)
+                        if (currentfood != null && cursorfood.getType().equals(currentfood.getType()) && currentfood.getAmount() > 0) {
+                            event.setCancelled(true);
+                            p.sendMessage(MSCK_HEAD + ChatColor.RED + "Slot has been occupied.");
+                            return;
+                        }
+                        // Left click or number click, amount > 1
+                        int hotbarb = event.getHotbarButton();
+                        // Item
+                        ItemStack hotbaritem = hotbarb == -1 ? null : p.getInventory().getItem(hotbarb);
+                        if (event.getClick().equals(ClickType.LEFT) && cursorfood.getAmount() > 1 || event.getClick().equals(ClickType.NUMBER_KEY) && hotbaritem != null && hotbaritem.getAmount() > 1) {
+                            event.setCancelled(true);
+                            p.sendMessage(MSCK_HEAD + ChatColor.RED + "Please insert singular items only.");
+                            return;
                         }
                         // Anti null
                         Bukkit.getScheduler().runTask(plugin, () -> {
@@ -339,6 +345,12 @@ class events implements Listener {
                         event.setCancelled(true);
                     }
                 } else {
+                    event.setCancelled(true);
+                }
+            } else {
+                // Lower inventory (player)
+                // Anti shift click in player inventory
+                if (event.getClick().equals(ClickType.SHIFT_LEFT) || event.getClick().equals(ClickType.SHIFT_RIGHT)) {
                     event.setCancelled(true);
                 }
             }

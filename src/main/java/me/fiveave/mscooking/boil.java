@@ -101,7 +101,7 @@ class boil {
                     // Get raw item
                     ItemStack[] foodstore = pot.getFoodstore();
                     ItemStack rawfood = foodstore[i];
-                    // If super-overcooked then delete item (set as air), else just make it cooked
+                    // If overcooked then delete item (set as air), else just make it cooked
                     ItemStack newitemstack = cookedPercent > 1000 ? new ItemStack(Material.AIR) : getCookedFood(rawfood);
                     // Create cooked item
                     if (newitemstack != null) {
